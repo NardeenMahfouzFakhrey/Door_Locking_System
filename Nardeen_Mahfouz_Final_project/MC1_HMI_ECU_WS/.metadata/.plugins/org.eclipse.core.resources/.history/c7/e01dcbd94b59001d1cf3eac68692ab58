@@ -1,0 +1,309 @@
+/*
+ * MC1.c
+ *
+ *  Created on: 30 Oct 2022
+ *      Author: EES
+ */
+
+#include "MC1.h"
+
+uint8 g_state = CREATE_PASSWORD;
+uint8 g_password[5];
+uint8 g_re_password[5];
+uint8 g_eeprom_password[5];
+uint8 g_tick=0;
+uint8 g_error=0;
+uint8 g_getkey;
+uint8 flag1=0,flag2=0,flag3=0;
+
+	 int main(){
+
+		 UART_init(&Uart_Config_Ptr);
+		 LCD_init();
+		 SREG |= (1<<7);
+
+		 while(1)
+		 {
+			 switch (g_state){
+			 case CREATE_PASSWORD:
+			 {
+			 LCD_clearScreen();
+			 LCD_displayString("plz enter pass:");
+			 LCD_moveCursor(1, 0);
+
+			 getPassword(g_password);
+
+			 LCD_clearScreen();
+			 LCD_displayString("plz re-enter the");
+			 LCD_moveCursor(1, 0);
+			 LCD_displayString("same pass:");
+
+			 getPassword(g_re_password);
+
+
+			 MCSendState(SEND_PASSWORD);
+			 sendPassword(g_password);
+
+			 MCSendState(CONFIRM_PASSWORD);
+			 sendPassword(g_re_password);
+
+			 	_delay_ms(500);
+			 	uint8 s = MCReceiveState();
+
+			     if(s==MATCHED ){
+			    	 LCD_clearScreen();
+			    	 LCD_displayString("Matched");
+			    	 _delay_ms(200);
+			 	 	g_state = MAIN_MENU;
+			     }
+			 	 else g_state=CREATE_PASSWORD;
+
+			 }
+
+			 break;
+
+			 case MAIN_MENU:{
+
+				 g_getkey=0;
+				 displayMainMenu();
+				 g_getkey=KEYPAD_getPressedKey();
+				 LCD_clearScreen();
+				 LCD_displayCharacter(g_getkey);
+				 _delay_ms(500);
+
+				 if(g_getkey ==  '-' ||  g_getkey == '+')
+				{
+					 g_state=ENTER_PASSWORD;
+
+				}
+				 else g_state=MAIN_MENU;
+			 }
+
+			 break;
+
+//			 case CHANGE_PASSWORD:{
+//				 LCD_clearScreen();
+//                LCD_displayString("change password");
+//                _delay_ms(3000);
+//				 g_state=CREATE_PASSWORD;
+//			 }
+//			 break;
+
+			 case ENTER_PASSWORD:{
+				 displayEnterPassword();
+				 getPassword(g_password);
+				 MCSendState(CONFIRM_PASSWORD);
+				 sendPassword(g_password);
+				 checkPassword();
+			 }
+			 break;
+
+			 }
+
+		 }
+	 }
+
+
+//	 void mainMenu(){
+//
+//	 	g_getkey=0;
+//	     displayMainMenu();
+//	     g_getkey=KEYPAD_getPressedKey();
+//   _delay_ms(1000);
+//	 	while(g_getkey!= 16 ||  g_getkey != 12)
+//	 		{g_state=MAIN_MENU;}
+//
+//	 	g_state=ENTER_PASSWORD;
+//	 }
+
+//
+//	 void createPassword(void){
+//	 	displayEnterPassword();
+//	 	getPassword(g_password);
+//
+//	 	displayRe_EnterPassword();
+//	 	getPassword(g_re_password);
+//
+//	 	LCD_clearScreen();
+//	 	LCD_displayString("now sending to mc2");
+//	 	MCSendState(SEND_PASSWORD);
+//	     sendPassword(g_password);
+//
+//	     LCD_clearScreen();
+//         LCD_displayString("mc2 is listining again");
+//
+//	 	MCSendState(CONFIRM_PASSWORD);
+//	 	sendPassword(g_re_password);
+//
+//	 	LCD_clearScreen();
+//	 	LCD_displayString("mc1 is waiting again");
+//
+//	     if(MCReceiveState()==MATCHED ){
+//	 	 	g_state = MAIN_MENU;
+//	 	 	}
+//	 	 else g_state=CREATE_PASSWORD;
+//	 }
+
+	 void displayEnterPassword(){
+	 	LCD_clearScreen();
+	 	LCD_displayString("plz enter pass:");
+	 	LCD_moveCursor(1, 0);
+	 }
+
+	 void displayRe_EnterPassword(){
+	 	LCD_clearScreen();
+	 	LCD_displayString("plz re-enter the");
+	 	LCD_moveCursor(1, 0);
+	 	LCD_displayString("same pass:");
+	 }
+
+	 void MCSendState(uint8 MC_state){
+	 	UART_sendByte(MC_READY);
+	 	while(UART_recieveByte()!= MC_READY);
+	 	UART_sendByte(MC_state);
+	 	while(UART_recieveByte()!=DONE);
+	 }
+	 void displayMainMenu(){
+		 LCD_clearScreen();
+		 LCD_displayString(" + : Open Door");
+		 LCD_moveCursor(1, 0);
+		 LCD_displayString(" - : Change Pass ");
+	 }
+
+	 uint8 MCReceiveState(void){
+	 	while(UART_recieveByte() != MC_READY){};
+	 	UART_sendByte(MC_READY);
+	 	uint8 state=UART_recieveByte();
+	 	UART_sendByte(DONE);
+	 	return state;
+	 }
+
+	 void getPassword(uint8 arr[]){
+	 	uint8 i=0;
+	 	uint8 g_key_pressed=KEYPAD_getPressedKey();
+	 	_delay_ms(600);
+	 	while(g_key_pressed!='='){
+
+	 		if(g_key_pressed>=0&&g_key_pressed<=9){
+	 			if(i<PASSWORD_SIZE){
+	 				arr[i]=g_key_pressed;
+	 				LCD_displayCharacter('*');
+	 				i++;
+	 			}
+	 		}
+	 		g_key_pressed=KEYPAD_getPressedKey();
+	 		_delay_ms(600);
+	 	}
+	 }
+
+
+	 void maxErrorOcurred(){
+		 MCSendState(BUZZER_ON);
+		 Timer1_setCallBack(timer_callBack);
+		 Timer1_init(&config_ptr);
+		 LCD_clearScreen();
+		 LCD_displayString("ERROR");
+		 while(g_tick < 915){
+
+		 }
+		 LCD_clearScreen();
+		 Timer1_deInit();
+	 }
+	 void displayNotMatched(){
+		 LCD_clearScreen();
+		 LCD_displayString("incorrect pass");
+		 _delay_ms(2000);
+	 }
+
+  void checkPassword(){
+	  _delay_ms(500);
+      uint8 state= MCReceiveState();
+
+	  if(state == MATCHED){
+
+	  		if(g_getkey =='+')
+	  		{
+	  			openDoor();
+	  			g_state=MAIN_MENU;
+	  		}
+	  		else
+	  			 g_state=CREATE_PASSWORD;
+
+	  	}
+	  	else if(state == NOT_MATCHED)
+	  		displayNotMatched();
+	  		g_error++;
+	  		if(g_error==MAX_ERROR) {
+	  			g_error=0;
+	  			maxErrorOcurred();
+	  			g_state= MAIN_MENU;
+	  	}
+	      else g_state=ENTER_PASSWORD;
+
+  }
+	 void sendPassword(uint8 send_pass[5]){
+	 int i=0;
+	 	while(i < PASSWORD_SIZE){
+	 	  UART_sendByte(send_pass[i]);
+	 	  i++;
+	 	  _delay_ms(20);
+
+	 	 }
+	 	}
+
+//	 void enterPassword(){
+//	 	displayEnterPassword();
+//	 	getPassword(g_password);
+//	 	MCSendState(CONFIRM_PASSWORD);
+//	 	sendPassword(g_password);
+//	     checkPassword();
+//	 }
+
+	 void timer_callBack(){
+		 g_tick++;
+		 	if(g_tick==15)
+		 	{
+		     flag1=1;
+		 	}
+
+		 	if(g_tick==18){
+		 		flag2=1;
+		 	}
+		 	if(g_tick==33){
+		 		flag3=1;
+		 	}
+	 }
+
+	 void openDoor(){
+
+		 MCSendState(OPEN_DOOR);
+
+		 Timer1_setCallBack(timer_callBack);
+		 Timer1_ConfigType  config_ptr;
+		 config_ptr.initial_value=0;
+		 config_ptr.compare_value=8000;
+		 config_ptr.mode=COMPARE_MODE;
+		 config_ptr.prescaler=F_CPU_1024;
+		 Timer1_init(&config_ptr);
+        LCD_clearScreen();
+		 LCD_displayString("Door is Unlocking");
+
+		 while(flag1==0);
+		 LCD_clearScreen();
+		 LCD_displayString("waiting");
+
+		 while(flag2==0);
+		 LCD_clearScreen();
+		 LCD_displayString("Door is locking");
+
+		 while(flag3==0);
+
+		 Timer1_deInit();
+
+		 flag1=flag2=flag3=0;
+		 LCD_clearScreen();
+		 g_state=MAIN_MENU;
+
+	 }
+
+

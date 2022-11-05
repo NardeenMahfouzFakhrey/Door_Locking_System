@@ -1,0 +1,45 @@
+/*
+ * MC2.h
+ *
+ *  Created on: 31 Oct 2022
+ *      Author: EES
+ */
+
+
+#include "uart.h"
+#include "dc_motor.h"
+#include "buzzer.h"
+#include "external_eeprom.h"
+#include "timer1.h"
+#include "std_types.h"
+#include "AVR/delay.h"
+#include "AVR/interrupt.h"
+
+#define PASSWORD_SIZE 5
+#define MC_READY 0x10
+#define SEND_PASSWORD 0x01
+#define CONFIRM_PASSWORD 0x02
+#define BUZZER_ON 0x03
+#define OPEN_DOOR 0x04
+#define MATCHED 0x05
+#define NOT_MATCHED 0x06
+#define DONE 0x07
+#define EEPROM_ADDRRESS 0X301
+
+uint8  g_password[5];
+uint8 g_eeprom_password[5];
+uint8 g_tick=0;
+uint8 g_flag_for_15_sec=0,g_flag_for_18_sec=0,g_flag_for_33_sec=0,g_flag_for_60_sec=0;
+UART_ConfigType uart_Config_Ptr ={EIGHT_BIT, DISABLED,ONE_STOP_BIT,9600};
+TWI_ConfigType twi_Config_Ptr= {0x01 , 0x02 ,PRESCALER_1};
+
+void MC2_init(void);
+uint8 MCReceiveState(void);
+void MCSendState(uint8 MC_state);
+void readFromMemory(void);
+void saveInMemory(void);
+void recievePassword(void);
+void checkPassword(void);
+void timer_callBack_func1(void);
+void timer_callBack_func2(void);
+void Timer_init_conifg(void);

@@ -1,0 +1,171 @@
+/*
+ * MC2.c
+ * Author:Nardeen
+ */
+
+#include "MC2.h"
+
+uint8 g_flag_for_15_sec=0,g_flag_for_18_sec=0,g_flag_for_33_sec=0,g_flag_for_60_sec=0;
+int main(){
+	    SREG |= (1<<7);
+		UART_init(&uart_Config_Ptr);
+        DcMotor_Init();
+
+        while(1) {
+
+		switch (MCReceiveState()){
+		case SEND_PASSWORD:
+		{
+			recievePassword();
+			saveInMemory();
+		}
+
+		break;
+
+		case CONFIRM_PASSWORD:
+
+		{
+			recievePassword();
+            readFromMemory();
+             checkPassword();
+		}
+		break;
+
+		case BUZZER_ON:
+		{  Timer1_setCallBack(timer_callBack_func2);
+			Timer_init_conifg();
+
+			Buzzer_on();
+			while(g_flag_for_60_sec==0);
+			Buzzer_off();
+			g_flag_for_60_sec=0;
+			Timer1_deInit();
+		}
+		break;
+
+		case OPEN_DOOR:
+		{ Timer1_setCallBack(timer_callBack_func1);
+			Timer_init_conifg();
+
+			         DcMotor_Rotate(CLOCKWISE, 100);
+
+			         while(g_flag_for_15_sec==0);
+			         DcMotor_Rotate(STOP, 100);
+
+			         while(g_flag_for_18_sec==0);
+			         DcMotor_Rotate(ANTI_CLOCKWISE, 100);
+
+			         while(g_flag_for_33_sec==0);
+
+			         Timer1_deInit();
+			         DcMotor_Rotate(STOP, 100);
+		            g_flag_for_15_sec=g_flag_for_18_sec=g_flag_for_33_sec=0;
+		}
+
+		break;
+		}
+
+	}
+}
+
+
+uint8 MCReceiveState(void){
+	/*Wait until HMI ECU sends that it's ready*/
+		while(UART_recieveByte() != MC_READY){};
+		/*Send Ready to HMI ECU to make it send the state*/
+		UART_sendByte(MC_READY);
+		/*Receive the sent state in a global variable called state*/
+		uint8 state=UART_recieveByte();
+		/*Tell HMI ECU that the state it sent is received*/
+		UART_sendByte(DONE);
+		return state;
+	 }
+
+void MCSendState(uint8 state){
+	/*Send Ready for HMI ECU*/
+	UART_sendByte(MC_READY);
+	/*Wait for HMI ECU to send back Ready state*/
+	while(UART_recieveByte()!=MC_READY);
+	/*Send the required state to HMI ECU*/
+	UART_sendByte(state);
+	/*Wait for HMI ECU to send that it received the state*/
+	while(UART_recieveByte()!=DONE);
+}
+
+void recievePassword(){
+	int i=0;
+    while(i < PASSWORD_SIZE){
+    	g_password[i]= UART_recieveByte();
+		 	  i++;
+
+
+		 	 }
+}
+
+void saveInMemory(){
+	int i=0;
+	    while(i < PASSWORD_SIZE){
+	    EEPROM_writeByte(EEPROM_ADDRRESS +i ,g_password[i] );
+	i++;
+	_delay_ms(10);
+	    }
+}
+
+void readFromMemory(){
+	int i=0;
+	    while(i < PASSWORD_SIZE){
+	    EEPROM_readByte( EEPROM_ADDRRESS +i ,&g_eeprom_password[i] );
+	i++;
+	_delay_ms(10);}
+}
+
+void checkPassword(){
+	int i=0,flag=0;
+while(i < PASSWORD_SIZE) {
+	if(g_eeprom_password[i] != g_password[i]){
+	 flag=1;
+	 break;
+	}
+i++;
+}
+
+if(flag==1){
+	MCSendState(NOT_MATCHED);
+}
+else MCSendState(MATCHED);
+
+}
+
+void timer_callBack_func1(){
+	g_tick++;
+	if(g_tick==15)
+	{
+    g_flag_for_15_sec=1;
+	}
+
+	if(g_tick==18){
+		g_flag_for_18_sec=1;
+	}
+	if(g_tick==33){
+		g_flag_for_33_sec=1;
+		g_tick=0;
+
+	}
+}
+void timer_callBack_func2(){
+	g_tick++;
+		if(g_tick==60)
+		{
+	    g_flag_for_60_sec=1;
+	    g_tick=0;
+
+		}
+}
+void Timer_init_conifg(void){
+	Timer1_ConfigType timer_config_ptr;
+	timer_config_ptr.nitial_value=0;
+	timer_config_ptr.compare_value=8000;
+	timer_config_ptr.mode=COMPARE_MODE;
+	timer_config_ptr.prescaler=F_CPU_8;
+	Timer1_init(&timer_config_ptr);
+}

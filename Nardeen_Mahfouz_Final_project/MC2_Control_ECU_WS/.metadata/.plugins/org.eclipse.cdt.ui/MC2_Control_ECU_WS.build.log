@@ -1,0 +1,41 @@
+15:22:59 **** Incremental Build of configuration Debug for project MC2_Control_ECU_WS ****
+make all 
+Building file: ../MC2.c
+Invoking: AVR Compiler
+avr-gcc -Wall -g2 -gstabs -O0 -fpack-struct -fshort-enums -ffunction-sections -fdata-sections -std=gnu99 -funsigned-char -funsigned-bitfields -mmcu=atmega32 -DF_CPU=8000000UL -MMD -MP -MF"MC2.d" -MT"MC2.o" -c -o "MC2.o" "../MC2.c"
+In file included from ../MC2.h:13,
+                 from ../MC2.c:8:
+c:/winavr-20100110/lib/gcc/../../avr/include/AVR/delay.h:36:2: warning: #warning "This file has been moved to <util/delay.h>."
+In file included from c:/winavr-20100110/lib/gcc/../../avr/include/AVR/delay.h:37,
+                 from ../MC2.h:13,
+                 from ../MC2.c:8:
+c:/winavr-20100110/lib/gcc/../../avr/include/util/delay.h:90:3: warning: #warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+Finished building: ../MC2.c
+ 
+Building target: MC2_Control_ECU_WS.elf
+Invoking: AVR C Linker
+avr-gcc -Wl,-Map,MC2_Control_ECU_WS.map -mmcu=atmega32 -o "MC2_Control_ECU_WS.elf"  ./MC2.o ./buzzer.o ./dc_motor.o ./external_eeprom.o ./gpio.o ./pwm_timer0.o ./timer1.o ./twi.o ./uart.o   
+Finished building target: MC2_Control_ECU_WS.elf
+ 
+Invoking: AVR Create Extended Listing
+avr-objdump -h -S MC2_Control_ECU_WS.elf  >"MC2_Control_ECU_WS.lss"
+Finished building: MC2_Control_ECU_WS.lss
+ 
+Invoking: Print Size
+avr-size --format=avr --mcu=atmega32 MC2_Control_ECU_WS.elf
+AVR Memory Usage
+----------------
+Device: atmega32
+
+Program:    8910 bytes (27.2% Full)
+(.text + .data + .bootloader)
+
+Data:        285 bytes (13.9% Full)
+(.data + .bss + .noinit)
+
+
+Finished building: sizedummy
+ 
+
+15:22:59 Build Finished. 0 errors, 2 warnings. (took 735ms)
+

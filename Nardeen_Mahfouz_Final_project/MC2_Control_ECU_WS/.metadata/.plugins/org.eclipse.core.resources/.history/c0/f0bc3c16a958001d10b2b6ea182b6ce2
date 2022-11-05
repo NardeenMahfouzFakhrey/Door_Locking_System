@@ -1,0 +1,27 @@
+/*
+ * MC2.h
+ *
+ *  Created on: 31 Oct 2022
+ *      Author: EES
+ */
+
+
+#include "uart.h"
+#include "dc_motor.h"
+#include "buzzer.h"
+#include "external_eeprom.h"
+#include "timer1.h"
+#include "std_types.h"
+
+#define PASSWORD_SIZE 5
+#define MC_READY 0x10
+
+uint8 * g_password
+enum{
+SEND_PASSWORD , CONFIRM_PASSWORD,
+CONFIRM_PASSWORD_EEPROM , BUZZER_ON,OPEN_DOOR,MATCHED,NOT_MATCHED,DONE
+};
+
+uint8 MCReceiveState(void);
+void MCSendState(uint8 MC_state);
+void recievePassword();

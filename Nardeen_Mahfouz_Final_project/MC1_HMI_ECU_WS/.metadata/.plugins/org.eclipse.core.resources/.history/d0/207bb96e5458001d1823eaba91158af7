@@ -1,0 +1,35 @@
+/*
+ * timer1.c
+ *
+ *  Created on: 30 Oct 2022
+ *      Author: EES
+ */
+
+#include "timer1.h"
+#include <avr/io.h>
+
+
+/*
+ * Function to initialize the Timer driver
+ *Inputs: pointer to the configuration structure with type
+ *Timer1_ConfigType */
+
+void Timer1_init(const Timer1_ConfigType * Config_Ptr){
+
+}
+
+/* Function to disable the Timer1 */
+void Timer1_deInit(void){
+
+}
+
+/*
+ *  Function to set the Call Back function address.
+ *Inputs: pointer to Call Back function.
+ */
+
+void Timer1_setCallBack(void(*a_ptr)(void)){
+
+}
+
+

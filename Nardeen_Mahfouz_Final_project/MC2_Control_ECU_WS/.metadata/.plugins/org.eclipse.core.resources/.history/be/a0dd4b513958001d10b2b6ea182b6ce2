@@ -1,0 +1,57 @@
+/*
+ * uart.c
+ *
+ *  Created on: 14 Oct 2022
+ *      Author: EES
+ */
+
+#include "uart.h"
+#include "common_macros.h"
+#include <avr/io.h>
+
+
+void UART_init(const UART_ConfigType * Config_Ptr){
+
+	UCSRA =(1<<U2X);
+	UCSRB =(1<<RXEN)|(1<<TXEN);
+	UCSRC = (1<<URSEL) | (1<<UCSZ0) | (1<<UCSZ1);
+	uint16 ubrr_value = (uint16)(((F_CPU / (Config_Ptr-> * 8UL))) - 1);
+	UBRRH = ubrr_value>>8;
+	UBRRL = ubrr_value;
+}
+
+void UART_sendByte(const uint8 data){
+
+while(BIT_IS_CLEAR(UCSRA,UDRE)){}
+
+	UDR = data;
+
+}
+uint8 UART_recieveByte(){
+	while(BIT_IS_CLEAR(UCSRA,RXC)){}
+	    return UDR;
+}
+void UART_sendString(const uint8 *Str){
+	while(*Str != '\0')
+		{
+			UART_sendByte(*Str);
+			Str++;
+		}
+
+}
+
+void UART_receiveString(uint8 *Str)
+{
+	uint8 i = 0;
+
+	Str[i] = UART_recieveByte();
+
+	while(Str[i] != '#')
+	{
+		i++;
+		Str[i] = UART_recieveByte();
+	}
+
+	Str[i] = '\0';
+}
+

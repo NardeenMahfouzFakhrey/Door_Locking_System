@@ -1,0 +1,49 @@
+/*
+ * timer1.c
+ *
+ *  Created on: 30 Oct 2022
+ *      Author: EES
+ */
+
+#include "timer1.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
+
+ISR(TIMER1_COMP_vect){
+
+
+}
+ISR(TIMER1_OVF_vect){
+
+
+}
+
+/*
+ * Function to initialize the Timer driver
+ *Inputs: pointer to the configuration structure with type
+ *Timer1_ConfigType */
+
+void Timer1_init(const Timer1_ConfigType * Config_Ptr){
+	TCCR1A=  (Config_Ptr->pin_operation << COM1A0) |  (Config_Ptr->pin_operation << COM1B0) | (1<<FOC1A);
+	TCCR1B = (Config_Ptr->mode << WGM12) | (Config_Ptr->prescaler << CS10);
+	TCNT1= Config_Ptr->initial_value;
+	OCR1A = Config_Ptr-> compare_value;
+	SREG |= (1<<7);
+	TIMSK |=(1<<OCIE1A);
+}
+
+/* Function to disable the Timer1 */
+void Timer1_deInit(void){
+
+}
+
+/*
+ *  Function to set the Call Back function address.
+ *Inputs: pointer to Call Back function.
+ */
+
+void Timer1_setCallBack(void(*a_ptr)(void)){
+
+}
+
+

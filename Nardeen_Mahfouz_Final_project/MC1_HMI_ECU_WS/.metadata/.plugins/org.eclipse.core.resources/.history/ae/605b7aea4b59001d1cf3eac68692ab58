@@ -1,0 +1,55 @@
+/*
+ * MC1.h
+ *
+ *  Created on: 30 Oct 2022
+ *      Author: EES
+ */
+
+#ifndef MC1_H_
+#define MC1_H_
+
+#include "lcd.h"
+#include "keypad.h"
+#include "uart.h"
+#include "timer1.h"
+#include "AVR/delay.h"
+#include "AVR/interrupt.h"
+#include "AVR/io.h"
+
+#define PASSWORD_SIZE 5
+#define MC_READY 0x10
+#define SEND_PASSWORD 0x01
+#define CONFIRM_PASSWORD 0x02
+#define BUZZER_ON 0x03
+#define OPEN_DOOR 0x04
+#define MATCHED 0x05
+#define NOT_MATCHED 0x06
+#define DONE 0x07
+#define MAX_ERROR 3
+
+Timer1_ConfigType config_ptr={NORMAL_MODE,F_CPU_8};
+UART_ConfigType Uart_Config_Ptr ={EIGHT_BIT, DISABLED,ONE_STOP_BIT,9600};
+
+
+enum{
+	CREATE_PASSWORD,CHANGE_PASSWORD,MAIN_MENU,ENTER_PASSWORD
+};
+
+
+void checkPassword();
+void openDoor();
+void timer_callBack(void);
+void displayNotMatched(void);
+void getPassword(uint8 *key);
+void sendPassword(uint8* send_pass);
+void mainMenu(void);
+void displayMainMenu();
+void createPassword(void);
+void displayEnterPassword(void);
+void displayRe_EnterPassword(void);
+uint8 MCReceiveState(void);
+void MCSendState(uint8 MC_state);
+void maxErrorOcurred();
+void CheckPassword();
+
+#endif /* MC1_H_ */

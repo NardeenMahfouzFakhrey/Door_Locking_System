@@ -1,0 +1,64 @@
+/*
+ * MC1.h
+ * Author: Nardeen
+ */
+
+#ifndef MC1_H_
+#define MC1_H_
+
+#include "lcd.h"
+#include "keypad.h"
+#include "uart.h"
+#include "timer1.h"
+#include "AVR/delay.h"
+#include "AVR/interrupt.h"
+#include "AVR/io.h"
+
+/*******************************************************************************
+ *                                Definitions                                  *
+ *******************************************************************************/
+
+#define PASSWORD_SIZE 5
+#define MC_READY 0x10
+#define SEND_PASSWORD 0x01
+#define CONFIRM_PASSWORD 0x02
+#define BUZZER_ON 0x03
+#define OPEN_DOOR 0x04
+#define MATCHED 0x05
+#define NOT_MATCHED 0x06
+#define DONE 0x07
+#define MAX_ERROR 3
+
+
+uint8 g_password[5];
+uint8 g_re_password[5];
+uint8 g_eeprom_password[5];
+uint8 g_tick=0;
+
+uint8 g_getkey;
+uint8 g_flag_for_15_sec=0,g_flag_for_18_sec=0,g_flag_for_33_sec=0,g_flag_for_60_sec=0;
+
+UART_ConfigType Uart_Config_Ptr ={EIGHT_BIT, DISABLED,ONE_STOP_BIT,9600};
+//Timer1_ConfigType timer_config_ptr ={0,8000,COMPARE_MODE,F_CPU_8};
+
+enum{
+	CREATE_PASSWORD,CHANGE_PASSWORD,MAIN_MENU,ENTER_PASSWORD
+};
+
+
+/*******************************************************************************
+ *                      Functions Prototypes                                   *
+ *******************************************************************************/
+void timer1_delay(int num);
+void displayMainMenu();
+void checkPassword();
+void openDoor();
+void displayNotMatched(void);
+void getPassword(uint8 *key);
+void sendPassword(uint8* send_pass);
+uint8 MCReceiveState(void);
+void MCSendState(uint8 MC_state);
+void maxErrorOcurred();
+void timer_callBack();
+
+#endif /* MC1_H_ */
